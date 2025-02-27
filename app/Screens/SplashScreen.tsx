@@ -30,8 +30,8 @@ export default function SplashScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Gas</Text>
-      <Text style={[styles.text, { color: 'rgba(0, 0, 0, 0.50)' }]}>App</Text>
+      <Text style={styles.text}>Shuttle</Text>
+      <Text style={[styles.text, { color: 'rgba(0, 0, 0, 0.50)' }]}>DriverApp</Text>
     </View>
   );
 }

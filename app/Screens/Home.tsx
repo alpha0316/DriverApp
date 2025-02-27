@@ -1,46 +1,78 @@
-import { Image, StyleSheet, Platform, View, Text, TextInput, FlatList, TouchableOpacity, ScrollView, Switch } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import Svg, { Path, Rect, Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
-import React, { useState } from 'react';
-import { useNavigation } from '@react-navigation/native';
-import Toggle from 'react-native-toggle-element';
+import React, { useEffect, useState } from 'react';
 import StartPoint from '@/components/StartPoint';
 import EndingPoint from '@/components/EndingPoint';
 import PrimaryButton from '@/components/PrimaryButton';
+import * as Location from 'expo-location';
 
 export default function Home({ navigation }) {
   const [isActiveTrip, setIsActiveTrip] = useState(false);
   const [startPoint, setStartPoint] = useState('');
   const [endPoint, setEndPoint] = useState('');
+  const [location, setLocation] = useState(null);
+  const [errorMsg, setErrorMsg] = useState('');
 
   const toggleSwitch = () => setIsActiveTrip(previousState => !previousState);
 
-  const handleStartPointChange = (selectedLocation: string) => {
+  const handleStartPointChange = (selectedLocation) => {
     setStartPoint(selectedLocation);
   };
 
-  const handleEndPointChange = (selectedLocation: string) => {
+  const handleEndPointChange = (selectedLocation) => {
     setEndPoint(selectedLocation);
   };
 
   const handleConfirmRoute = () => {
     console.log('Start Point:', startPoint);
     console.log('End Point:', endPoint);
+    if (location) {
+      console.log('Current Location:', location.coords);
+    }
     // Add navigation or further logic here
   };
+
+  useEffect(() => {
+    const getPermissions = async () => {
+      try {
+        // Request location permissions
+        let { status } = await Location.requestForegroundPermissionsAsync();
+
+        if (status !== 'granted') {
+          setErrorMsg('Permission to access location was denied');
+          return;
+        }
+
+        // Get the current location
+        let currentLocation = await Location.getCurrentPositionAsync({});
+        setLocation(currentLocation);
+        console.log('Location:', currentLocation);
+      } catch (error) {
+        console.error('Error fetching location:', error);
+        setErrorMsg('Error fetching location');
+      }
+    };
+
+    getPermissions();
+  }, []);
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={styles.main}>
         <View style={styles.contentWrapper}>
-          {/* Main content */}
           <View style={styles.mainContent}>
-            {/* Header */}
             <View style={styles.header}>
               <View style={styles.profileContainer}>
                 <View style={styles.profileImage}></View>
                 <View style={styles.profileTextContainer}>
                   <Text style={styles.profileText}>Oi Mandem</Text>
                   <Text style={styles.profileSubText}>Tap to view app settings</Text>
+                  {/* {location && (
+                    <Text style={styles.profileSubText}>
+                      Lat: {location.coords.latitude}, Long: {location.coords.longitude}
+                    </Text>
+                  )} */}
+                  {errorMsg && <Text style={styles.errorText}>{errorMsg}</Text>}
                 </View>
               </View>
 
@@ -76,7 +108,7 @@ export default function Home({ navigation }) {
             </View>
           </View>
 
-          <View style={{ display: 'flex', gap: 12 }}>
+          <View style={{ gap: 12 }}>
             <View style={styles.toggleContainer}>
               <Text style={styles.toggleText}>Active Trip</Text>
               <TouchableOpacity onPress={toggleSwitch} activeOpacity={0.8}>
@@ -118,12 +150,12 @@ export default function Home({ navigation }) {
             </Text>
           </View>
 
-          <View style={{ gap: 16, display: 'flex' }}>
+          <View style={{ gap: 16 }}>
             <Text style={{ fontWeight: '700', fontSize: 18 }}>Routes</Text>
 
-            <View style={{ gap: 12, display: 'flex' }}>
+            <View style={{ gap: 12 }}>
               <Text style={{ fontSize: 16, color: 'rgba(0,0,0,0.6)' }}>Starting Point</Text>
-              <View style={{ display: 'flex', flexDirection: 'row', gap: 12 }}>
+              <View style={{ flexDirection: 'row', gap: 12 }}>
                 <View style={styles.circleContainer}>
                   <Svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
                     <Path
@@ -139,7 +171,7 @@ export default function Home({ navigation }) {
               <View style={styles.dashedLine} />
 
               <Text style={{ fontSize: 16, color: 'rgba(0,0,0,0.6)' }}>Ending Point</Text>
-              <View style={{ display: 'flex', flexDirection: 'row', gap: 12 }}>
+              <View style={{ flexDirection: 'row', gap: 12 }}>
                 <View style={styles.circleContainer}>
                   <Svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
                     <Path
@@ -207,16 +239,18 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#4F4F4F',
   },
+  errorText: {
+    fontSize: 12,
+    color: 'red',
+  },
   toggleContainer: {
     paddingVertical: 12,
     borderRadius: 16,
     backgroundColor: '#f4f4f4',
-    display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
-    width: 'auto',
   },
   toggleText: {
     fontSize: 18,
