@@ -22,7 +22,7 @@ export default function SplashScreen() {
 
     // }
     // getToken()
-    navigation.navigate('PhoneNumber'); 
+    navigation.navigate('Register'); 
   }, 2000);
 
   return () => clearTimeout(timer);
