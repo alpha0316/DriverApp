@@ -1,10 +1,11 @@
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import Svg, { Path, Rect, Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 import React, { useEffect, useState } from 'react';
 import StartPoint from '@/components/StartPoint';
 import EndingPoint from '@/components/EndingPoint';
 import PrimaryButton from '@/components/PrimaryButton';
 import * as Location from 'expo-location';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Home({ navigation }) {
   const [isActiveTrip, setIsActiveTrip] = useState(false);
@@ -12,8 +13,100 @@ export default function Home({ navigation }) {
   const [endPoint, setEndPoint] = useState('');
   const [location, setLocation] = useState(null);
   const [errorMsg, setErrorMsg] = useState('');
+  const [busID, setBusID] = useState('');
+  // const [ws, setWs] = useState(null)
 
-  const toggleSwitch = () => setIsActiveTrip(previousState => !previousState);
+
+  // useEffect(() => {
+  //   const websocket = new WebSocket('ws://localhost:8080')
+
+  //   websocket.onopen = () => {
+  //     console.log('Websocket connected')
+  //     setWs(websocket)
+
+  //     websocket.send(JSON.stringify({
+  //       type : 'register',
+  //       role : 'driver',
+  //       driverId: 'driver123'
+  //     }))
+
+  //   }
+
+  //     websocket.onerror = (error) => {
+  //       console.error('Websock error', error)
+  //     }
+
+  //     websocket.onclose = () =>{
+  //       console.log('Websock disconnected')
+  //     }
+
+  //     return () => {
+  //       websocket.close()
+  //     }
+ 
+  // }, [])
+
+
+  useEffect(() => {
+    const getToken = async () => {
+      let result = await AsyncStorage.getItem('userToken');
+      console.log('User Token:', result);
+      if (result) {
+        // navigation.navigate("Home");
+      } else {
+        // navigation.navigate('Register');
+      }
+    };
+    getToken();
+  }, []);
+
+  const BASE_CUSTOMER_URL = "https://shuttle-backend-0.onrender.com/api/v1";
+
+  useEffect(() => {
+    const fetchDrivers = async () => {
+      try {
+        const response = await fetch(`${BASE_CUSTOMER_URL}/drivers/drivers`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch orders');
+        }
+        const data = await response.json();
+        console.log(data);
+      } catch (err) {
+        console.error("Error fetching orders:", err);
+      }
+    };
+    fetchDrivers();
+  }, []);
+
+  const switchStatus = async () => {
+    try {
+      const response = await fetch(`${BASE_CUSTOMER_URL}/drivers/drivers/switchStatus`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          busID: busID, 
+        }),
+      });
+
+      const data = await response.json();
+      console.log("Switch Status Response:", data);
+
+      if (response.ok) {
+        setIsActiveTrip((previousState) => !previousState);
+      } else {
+        Alert.alert('Error', data.message || 'Failed to toggle bus status.');
+      }
+    } catch (error) {
+      Alert.alert('Error', error.message || 'Could not toggle bus status.');
+    }
+  };
+
+  const toggleSwitch = () => {
+    
+    switchStatus();
+  };
 
   const handleStartPointChange = (selectedLocation) => {
     setStartPoint(selectedLocation);
@@ -29,13 +122,13 @@ export default function Home({ navigation }) {
     if (location) {
       console.log('Current Location:', location.coords);
     }
-    // Add navigation or further logic here
+ 
   };
 
   useEffect(() => {
     const getPermissions = async () => {
       try {
-        // Request location permissions
+     
         let { status } = await Location.requestForegroundPermissionsAsync();
 
         if (status !== 'granted') {
@@ -43,10 +136,21 @@ export default function Home({ navigation }) {
           return;
         }
 
-        // Get the current location
         let currentLocation = await Location.getCurrentPositionAsync({});
         setLocation(currentLocation);
         console.log('Location:', currentLocation);
+
+        // if (ws && ws.readyState === WebSocket.OPEN){
+        //   ws.send(JSON.stringify({
+        //     type : 'location',
+        //     driverId : 'driver123',
+        //     lat : currentLocation.coords.latitude,
+        //     lng : currentLocation.coords.longitude,
+        //     timestamp : new Date().toISOString()
+        //   }))
+        // }
+        
+
       } catch (error) {
         console.error('Error fetching location:', error);
         setErrorMsg('Error fetching location');
@@ -55,6 +159,45 @@ export default function Home({ navigation }) {
 
     getPermissions();
   }, []);
+
+  useEffect(() => {
+    const retrieveUserData = async () => {
+      try {
+        const userDataString = await AsyncStorage.getItem('userData');
+        if (userDataString) {
+          const userData = JSON.parse(userDataString);
+          console.log("Retrieved User Data:", userData);
+
+   
+          if (userData.driver?.id) {
+            setBusID(userData.driver.id);
+            console.log("Bus ID:", userData.driver.id);
+            console.log(busID)
+          }
+        } else {
+          console.log("No user data found in AsyncStorage.");
+        }
+      } catch (error) {
+        console.error("Error retrieving user data:", error);
+      }
+    };
+
+    retrieveUserData();
+  }, []);
+
+  const handleSignOut = async () => {
+    try {
+
+      await AsyncStorage.removeItem('userToken');
+      console.log('User data cleared from AsyncStorage');
+
+   
+      navigation.navigate('Register'); 
+    } catch (error) {
+      console.error('Error signing out:', error);
+      Alert.alert('Error', 'Failed to sign out. Please try again.');
+    }
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -67,11 +210,6 @@ export default function Home({ navigation }) {
                 <View style={styles.profileTextContainer}>
                   <Text style={styles.profileText}>Oi Mandem</Text>
                   <Text style={styles.profileSubText}>Tap to view app settings</Text>
-                  {/* {location && (
-                    <Text style={styles.profileSubText}>
-                      Lat: {location.coords.latitude}, Long: {location.coords.longitude}
-                    </Text>
-                  )} */}
                   {errorMsg && <Text style={styles.errorText}>{errorMsg}</Text>}
                 </View>
               </View>
@@ -187,6 +325,10 @@ export default function Home({ navigation }) {
           </View>
 
           <PrimaryButton title="Confirm Route" onPress={handleConfirmRoute} />
+
+          <TouchableOpacity onPress={handleSignOut}>
+            <Text>Sign Out</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </ScrollView>

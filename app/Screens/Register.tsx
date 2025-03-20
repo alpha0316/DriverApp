@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import PrimaryButton from '@/components/PrimaryButton';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Register = ({ navigation }) => {
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -12,6 +13,7 @@ const Register = ({ navigation }) => {
 
   const BASE_CUSTOMER_URL = "http://shuttle-backend-0.onrender.com/api/v1";
 
+
   const handleRegister = async () => {
     if (!phoneNumber || phoneNumber.length < 10) {
       alert("Please enter a valid phone number.");
@@ -19,7 +21,7 @@ const Register = ({ navigation }) => {
     }
 
     try {
-      const response = await fetch(`${BASE_CUSTOMER_URL}/AUTH/register`, {
+      const response = await fetch(`${BASE_CUSTOMER_URL}/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -39,8 +41,10 @@ const Register = ({ navigation }) => {
 
       const data = await response.json();
       console.log(data);
+      console.log(response);
 
       if (response.ok) {
+        await AsyncStorage.setItem('userData', JSON.stringify(data));
         navigation.navigate('Home');
       } else {
         Alert.alert('Error', data.message || 'Registration failed.');
@@ -121,7 +125,11 @@ const Register = ({ navigation }) => {
               />
               <TouchableOpacity
                 onPress={() => setShowPassword(!showPassword)}
-                style={styles.eyeIcon}
+                style={{
+                  position: 'absolute',
+                  right: 10,
+                  padding: 10
+                }}
               >
                 <Icon
                   name={showPassword ? 'eye-slash' : 'eye'}

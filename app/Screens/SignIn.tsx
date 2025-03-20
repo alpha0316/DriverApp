@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import PrimaryButton from '@/components/PrimaryButton';
+import Icon from 'react-native-vector-icons/FontAwesome';
 import BackButton from '@/components/BackButton';
 import axios from 'axios';
 import OTPVerification from './OTPVerification';
+import { request } from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 // import * as SecureStore from 'expo-secure-store';
 
 
@@ -14,11 +17,12 @@ const SignIn = ({ navigation, route }) => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
+   const [showPassword, setShowPassword] = useState(false);
 
 
 
 
-  const BASE_CUSTOMER_URL = "https://shuttle-backend-0.onrender.com";
+  const BASE_CUSTOMER_URL = "https://shuttle-backend-0.onrender.com/api/v1";
 
 
   const SignIn = async () => {
@@ -28,7 +32,7 @@ const SignIn = ({ navigation, route }) => {
     }
 
     try {
-      const response = await fetch(`${BASE_CUSTOMER_URL}/AUTH/login`, {
+      const response = await fetch(`${BASE_CUSTOMER_URL}/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -41,8 +45,10 @@ const SignIn = ({ navigation, route }) => {
 
       const data = await response.json();
       console.log(data)
+      // console.log(response)
 
       if (response.ok) {
+        await AsyncStorage.setItem('userData', JSON.stringify(data));
         navigation.navigate('Home');
       } else {
         Alert.alert('Error', data.message || 'Registration failed.');
@@ -129,8 +135,23 @@ const SignIn = ({ navigation, route }) => {
                     placeholderTextColor={'rgba(0,0,0,.5)'}
                     returnKeyType="done"
                     maxLength={10}
-                    secureTextEntry={true}
+                    // secureTextEntry={true}
+                    secureTextEntry={!showPassword}
                   />
+                     <TouchableOpacity
+                        onPress={() => setShowPassword(!showPassword)}
+                        style={{
+                          position: 'absolute',
+                          right: 16,
+                          paddingVertical: 40
+                        }}
+                      >
+                        <Icon
+                          name={showPassword ? 'eye-slash' : 'eye'}
+                          size={20}
+                          color="rgba(0,0,0,0.5)"
+                        />
+                      </TouchableOpacity>
             </View>
             
               <PrimaryButton title='Sign In' onPress={SignIn} />
