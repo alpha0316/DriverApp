@@ -81,7 +81,7 @@ const SignIn = ({ navigation, route }) => {
             <Text style={{
               fontSize : 16,
               color : 'rgba(0,0,0,0.6)'
-            }}>Enter Your Details To Register </Text>
+            }}>Enter Your Details To Login </Text>
         </View>
           
        

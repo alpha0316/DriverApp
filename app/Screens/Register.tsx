@@ -140,7 +140,7 @@ const Register = ({ navigation }) => {
             </View>
           </View>
 
-          <PrimaryButton title="Sign In" onPress={handleRegister} />
+          <PrimaryButton title="Sign Up" onPress={handleRegister} />
 
           <View style={{ display: 'flex', flexDirection: 'row', gap: 8 }}>
             <Text style={{ fontSize: 16, color: 'rgba(0,0,0,0.6)' }}>Do you already have an account?</Text>
