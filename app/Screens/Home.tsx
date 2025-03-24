@@ -86,7 +86,7 @@ export default function Home({ navigation }) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          busID: busID, 
+          driverID: busID, 
         }),
       });
 
