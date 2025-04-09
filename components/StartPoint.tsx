@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 
 // Define the Location type
@@ -27,7 +27,27 @@ const StartPoint = () => {
   const [searchText, setSearchText] = useState('');
   const [filteredLocations, setFilteredLocations] = useState<Location[]>(locations);
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
+  const [stops, setStops] = useState([])
   console.log(searchText)
+
+  const BASE_CUSTOMER_URL = "https://shuttle-backend-0.onrender.com/api/v1";
+
+  useEffect(() => {
+      const fetchDrivers = async () => {
+        try {
+          const response = await fetch(`${BASE_CUSTOMER_URL}/drivers/drivers`);
+          if (!response.ok) {
+            throw new Error('Failed to fetch orders');
+          }
+          const data = await response.json();
+          console.log(stops[Array.length-1]);
+          // setStops(data.drivers[0].busRoute[0].stops)
+        } catch (err) {
+          console.error("Error fetching orders:", err);
+        }
+      };
+      fetchDrivers();
+    }, []);
 
   // Handle text input change
   const handleInputChange = (text: string) => {
@@ -54,14 +74,14 @@ const StartPoint = () => {
       <TextInput
         style={styles.input}
         placeholder="Search for a location"
-        value={searchText}
+        value={stops[0]}
         onChangeText={handleInputChange}
         onFocus={() => setIsDropdownVisible(true)}
         onBlur={() => setIsDropdownVisible(false)}
       />
 
       {/* Dropdown List */}
-      {isDropdownVisible && (
+      {/* {isDropdownVisible && (
         <FlatList
           data={filteredLocations}
           keyExtractor={(item) => item.id}
@@ -76,7 +96,7 @@ const StartPoint = () => {
           )}
           style={styles.dropdown}
         />
-      )}
+      )} */}
     </View>
   );
 };

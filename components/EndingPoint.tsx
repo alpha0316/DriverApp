@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 
 // Define the Location type
@@ -22,11 +22,30 @@ const locations: Location[] = [
   { id: '9', name: 'Hall 7', description: 'Hub for student activities', latitude: 6.679295619563862, longitude: -1.572807677030472 },
   { id: '10', name: 'Conti Busstop', description: 'Hub for student activities', latitude: 6.679644223364716, longitude: -1.572967657880401 },
 ];
+const BASE_CUSTOMER_URL = "https://shuttle-backend-0.onrender.com/api/v1";
 
 const EndingPoint = () => {
   const [searchText, setSearchText] = useState('');
   const [filteredLocations, setFilteredLocations] = useState<Location[]>(locations);
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
+   const [stops, setStops] = useState([])
+
+     useEffect(() => {
+         const fetchDrivers = async () => {
+           try {
+             const response = await fetch(`${BASE_CUSTOMER_URL}/drivers/drivers`);
+             if (!response.ok) {
+               throw new Error('Failed to fetch orders');
+             }
+             const data = await response.json();
+             console.log(stops[Array.length-1]);
+            //  setStops(data.drivers[0].busRoute[0].stops)
+           } catch (err) {
+             console.error("Error fetching orders:", err);
+           }
+         };
+         fetchDrivers();
+       }, []);
 
   // Handle text input change
   const handleInputChange = (text: string) => {
@@ -53,7 +72,7 @@ const EndingPoint = () => {
       <TextInput
         style={styles.input}
         placeholder="Search for a location"
-        value={searchText}
+        value={stops[Array.length-1]}
         
         onChangeText={handleInputChange}
         onFocus={() => setIsDropdownVisible(true)}
@@ -61,7 +80,7 @@ const EndingPoint = () => {
       />
 
       {/* Dropdown List */}
-      {isDropdownVisible && (
+      {/* {isDropdownVisible && (
         <FlatList
           data={filteredLocations}
           keyExtractor={(item) => item.id}
@@ -76,7 +95,7 @@ const EndingPoint = () => {
           )}
           style={styles.dropdown}
         />
-      )}
+      )} */}
     </View>
   );
 };

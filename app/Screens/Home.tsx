@@ -14,6 +14,7 @@ export default function Home({ navigation }) {
   const [location, setLocation] = useState(null);
   const [errorMsg, setErrorMsg] = useState('');
   const [busID, setBusID] = useState('');
+  const [stops, setStops] = useState([])
   // const [ws, setWs] = useState(null)
 
 
@@ -70,7 +71,8 @@ export default function Home({ navigation }) {
           throw new Error('Failed to fetch orders');
         }
         const data = await response.json();
-        console.log(data);
+        console.log(data.drivers);
+        setStops(data.drivers[0].busRoute[0].stops)
       } catch (err) {
         console.error("Error fetching orders:", err);
       }
