@@ -39,7 +39,7 @@ const EndingPoint = () => {
              }
              const data = await response.json();
              console.log(stops[Array.length-1]);
-            //  setStops(data.drivers[0].busRoute[0].stops)
+             setStops(data.drivers[0].busRoute[0].stops)
            } catch (err) {
              console.error("Error fetching orders:", err);
            }

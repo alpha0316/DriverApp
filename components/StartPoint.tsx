@@ -40,8 +40,8 @@ const StartPoint = () => {
             throw new Error('Failed to fetch orders');
           }
           const data = await response.json();
-          console.log(stops[Array.length-1]);
-          // setStops(data.drivers[0].busRoute[0].stops)
+          // console.log(stops[Array.length-1]);
+          setStops(data.drivers[0].busRoute[0].stops)
         } catch (err) {
           console.error("Error fetching orders:", err);
         }
