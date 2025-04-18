@@ -5,6 +5,7 @@ const useLocation = () => {
   const [errorMsg, setErrorMsg] = useState('');
   const [longitude, setLongitude] = useState(null);
   const [latitude, setLatitude] = useState(null);
+  const socket = new WebSocket('ws://localhost:3000')
 
   const getUserLocation = async () => {
     try {

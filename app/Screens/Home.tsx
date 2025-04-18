@@ -71,8 +71,8 @@ export default function Home({ navigation }) {
           throw new Error('Failed to fetch orders');
         }
         const data = await response.json();
-        console.log(data.drivers);
-        setStops(data.drivers[0].busRoute[0].stops)
+        // console.log(data.drivers);
+        // setStops(data.drivers[0].busRoute[0].stops)
       } catch (err) {
         console.error("Error fetching orders:", err);
       }
@@ -93,7 +93,7 @@ export default function Home({ navigation }) {
       });
 
       const data = await response.json();
-      console.log("Switch Status Response:", data);
+      // console.log("Switch Status Response:", data);
 
       if (response.ok) {
         setIsActiveTrip((previousState) => !previousState);
@@ -127,39 +127,71 @@ export default function Home({ navigation }) {
  
   };
 
+  //// WebSocket And Locaiton Part
   useEffect(() => {
+ 
+    const socket = new WebSocket('ws://localhost:3000');
+    
+    socket.onopen = () => {
+      console.log('WebSocket connection established');
+    };
+  
+    socket.onmessage = (event) => {
+      try {
+        const message = JSON.parse(event.data);
+        if (message.event === 'driver-locations') {
+          console.log('Received driver locations:', message.data);
+        }
+      } catch (error) {
+        console.error('Error parsing WebSocket message:', error);
+      }
+    };
+  
+    socket.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+  
+    socket.onclose = () => {
+      console.log('WebSocket connection closed');
+    };
+  
     const getPermissions = async () => {
       try {
-     
         let { status } = await Location.requestForegroundPermissionsAsync();
-
+        
         if (status !== 'granted') {
           setErrorMsg('Permission to access location was denied');
           return;
         }
-
-        let currentLocation = await Location.getCurrentPositionAsync({});
-        setLocation(currentLocation);
-        console.log('Location:', currentLocation);
-
-        // if (ws && ws.readyState === WebSocket.OPEN){
-        //   ws.send(JSON.stringify({
-        //     type : 'location',
-        //     driverId : 'driver123',
-        //     lat : currentLocation.coords.latitude,
-        //     lng : currentLocation.coords.longitude,
-        //     timestamp : new Date().toISOString()
-        //   }))
-        // }
         
-
+        let currentLocation = await Location.getCurrentPositionAsync({});
+        
+   
+        const latitude = currentLocation.coords.latitude;
+        const longitude = currentLocation.coords.longitude;
+        
+      
+        if (socket.readyState === WebSocket.OPEN) {
+          socket.send(JSON.stringify({
+            event: 'share-location',
+            data: { latitude, longitude }
+          }));
+          console.log('Location sent to WebSocket:', { latitude, longitude });
+        }
       } catch (error) {
         console.error('Error fetching location:', error);
         setErrorMsg('Error fetching location');
       }
     };
-
+  
     getPermissions();
+  
+   
+    return () => {
+      if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.close();
+      }
+    };
   }, []);
 
   useEffect(() => {
