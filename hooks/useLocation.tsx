@@ -1,19 +1,18 @@
-import { useState } from 'react';
-import * as Location from 'expo-location';
+import { useState } from "react";
+import * as Location from "expo-location";
 
 const useLocation = () => {
-  const [errorMsg, setErrorMsg] = useState('');
+  const [errorMsg, setErrorMsg] = useState("");
   const [longitude, setLongitude] = useState(null);
   const [latitude, setLatitude] = useState(null);
-  const socket = new WebSocket('ws://localhost:3000')
 
   const getUserLocation = async () => {
     try {
       // Request permission to access location
       let { status } = await Location.requestForegroundPermissionsAsync();
 
-      if (status !== 'granted') {
-        setErrorMsg('Permission to access location was denied');
+      if (status !== "granted") {
+        setErrorMsg("Permission to access location was denied");
         return;
       }
 
@@ -22,7 +21,7 @@ const useLocation = () => {
 
       if (coords) {
         const { latitude, longitude } = coords;
-        console.log('Latitude:', latitude, 'Longitude:', longitude);
+        console.log("Latitude:", latitude, "Longitude:", longitude);
         setLatitude(latitude);
         setLongitude(longitude);
 
@@ -32,11 +31,11 @@ const useLocation = () => {
           longitude,
         });
 
-        console.log('User Location:', response);
+        console.log("User Location:", response);
       }
     } catch (error) {
-      console.error('Error getting location:', error);
-      setErrorMsg('Error fetching location');
+      console.error("Error getting location:", error);
+      setErrorMsg("Error fetching location");
     }
   };
 
