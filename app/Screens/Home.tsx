@@ -104,8 +104,8 @@ export default function Home({ navigation }: HomeProps) {
         }
       );
 
-      const data = await response.json();
-      // console.log("Switch Status Response:", data);
+      // const data = await response.json();
+      console.log("Switch Status Response:", data);
 
       if (response.ok) {
         setIsActiveTrip((previousState) => !previousState);
@@ -187,6 +187,7 @@ export default function Home({ navigation }: HomeProps) {
           accuracy: Location.Accuracy.High,
         });
         setLocation(currentLocation);
+        console.log(location)
 
         // Start watching position
         const locationSubscription = await Location.watchPositionAsync(
